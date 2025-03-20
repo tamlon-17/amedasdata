@@ -31,19 +31,25 @@ def amedas_area(area):
     return code, key
 
 
-def is_date_length(b_date, e_date):
+def date_adjust(b_date, e_date, is_daily):
     """期間が1年以上の場合に、365日後に修正する関数
 
     Args:
         b_date (date):開始年月日
         e_date (date):終了年月日
+        is_daily (bool):日別か半旬か
     Returns:
         date: 修正後の終了年月日
     """
-    e_date = e_date if e_date < date.today() else date.today()
+    e_date = e_date if e_date < date.today() else (date.today() -
+                                                   timedelta(days=1))
     b_date = b_date if b_date < e_date else e_date - timedelta(days=1)
     e_date = e_date if (e_date - b_date) < timedelta(days=367) \
         else (b_date + timedelta(days=364))
+    if not is_daily and date.today() - e_date < timedelta(days=5):
+        d_days = date.today().day % 5 if date.today().day % 5 != 0 else 5
+        e_date = date.today() - timedelta(days=d_days)
+        b_date = b_date if b_date < e_date else e_date - timedelta(days=1)
     return b_date, e_date
 
 
@@ -126,7 +132,6 @@ def get_1month_df(a_code, year, month, key):
     df = clean_df(df)
     if month == 2:
         df = df.drop(index=[28], errors="ignore")
-
     return df
 
 
@@ -152,7 +157,10 @@ def get_months_df(a_code, b_date, e_date, year, key):
             1, e_date.month + 1)]
         df_l = df_l1 + df_l2
     columns = ['平均気温', '最高気温', '最低気温', '降水量', '日照時間']
-    return pd.concat(df_l, ignore_index=True).set_axis(columns, axis=1)
+    df = pd.concat(df_l).set_axis(columns, axis=1)
+    days = e_date - b_date
+    df = df.iloc[b_date.day - 1: b_date.day + days.days]
+    return df
 
 
 def hanjun(day: int) -> int:
@@ -207,6 +215,23 @@ def mean_df(dfl):
     return pd.DataFrame(mean_np, columns=columns)
 
 
+def date_index(b_date, e_date):
+    """日別のデータフレームの日付indexを取得する関数
+
+    Args:
+        b_date (date):開始日
+        e_date (date):終了日
+    Returns:
+        list: 日付のindexリスト
+    """
+    date_list = []
+    current_date = b_date
+    while current_date <= e_date:
+        date_list.append(current_date.strftime("%m/%d"))
+        current_date += timedelta(days=1)
+    return date_list
+
+
 def get_amedas_data(area, b_date: date, e_date: date, years, is_daily):
     """指定期間のアメダスデータを取得する関数
 
@@ -220,21 +245,23 @@ def get_amedas_data(area, b_date: date, e_date: date, years, is_daily):
         pd.DataFrame:アメダスデータのデータフレーム
     """
     a_code, key = amedas_area(area)
-    b_date, e_date = is_date_length(b_date, e_date)
+    b_date, e_date = date_adjust(b_date, e_date, is_daily)
     if is_daily:
         df_l = [get_months_df(a_code, b_date, e_date, y, key) for y in range(
             b_date.year + 1 - years, b_date.year + 1)]
+        df = mean_df(df_l)
+        df.index = date_index(b_date, e_date)
     else:
         df_l = [get_harf_df(a_code, b_date, e_date, y, key) for y in range(
             b_date.year + 1 - years, b_date.year + 1)]
-    df = mean_df(df_l)
+        df = mean_df(df_l)
     return df
 
 
 def main():
-    df = get_amedas_data('石巻', date(2025, 1, 10), date(2025, 1, 18), 3, True)
+    df = get_amedas_data('石巻', date(2025, 1, 31), date(2025, 2, 1), 1, True)
     print(df)
-    df2 = get_amedas_data('古川', date(2025, 2, 15), date(2025, 3, 3), 5, False)
+    df2 = get_amedas_data('古川', date(2025, 2, 2), date(2025, 3, 3), 5, False)
     print(df2)
 
 
