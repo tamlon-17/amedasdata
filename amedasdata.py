@@ -1,6 +1,6 @@
-import getamedas
 import streamlit as st
-import openpyxl
+
+import getamedas
 
 st.set_page_config(page_title='いつものやつ', page_icon='icon.ico')
 st.title('いつものやつ')
