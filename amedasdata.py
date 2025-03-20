@@ -2,10 +2,10 @@ import streamlit as st
 
 import getamedas
 
-st.set_page_config(page_title='いつものやつ', page_icon='icon.ico')
-st.title('いつものやつ')
-st.caption('作物普及員なら一度は作ったことのある、栽培期間の気象をグラフにするためのウェブアプリです。')
-if st.button('アプリの説明～必ず読んでね！'):
+st.set_page_config(page_title='アメ出す')
+st.title('アメ出す')
+st.caption('アメダスの気象データを簡単に出すことができるアプリだよ(^^)/')
+if st.button('アプリの説明～まずは読んでみてね！'):
     st.switch_page('pages/readme.py')
 
 amedas_l = ['気仙沼', '川渡', '築館', '志津川', '古川', '大衡', '鹿島台', '石巻',
