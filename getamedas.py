@@ -6,6 +6,7 @@
 """
 
 from datetime import date, timedelta
+from io import BytesIO
 import numpy as np
 import pandas as pd
 import lxml
@@ -256,6 +257,20 @@ def get_amedas_data(area, b_date: date, e_date: date, years, is_daily):
             b_date.year + 1 - years, b_date.year + 1)]
         df = mean_df(df_l)
     return df
+
+
+def convert_to_excel(df):
+    """データフレームをエクセルに変換する関数
+
+    Args:
+        df (pd.DataFrame):参照するデータフレーム
+    Returns:
+        bytes:よくわかんね
+    """
+    output = BytesIO()  # メモリバッファを作成
+    with pd.ExcelWriter(output, engine='openpyxl') as writer:
+        df.to_excel(writer, sheet_name='Sheet1')
+    return output.getvalue()
 
 
 def main():
