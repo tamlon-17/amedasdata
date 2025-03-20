@@ -1,7 +1,6 @@
-from datetime import date
 import getamedas
 import streamlit as st
-
+import openpyxl
 
 st.set_page_config(page_title='いつものやつ', page_icon='icon.ico')
 st.title('いつものやつ')
